@@ -585,6 +585,18 @@ exports.init = async (opts = {}) => {
         WHERE name = ?
       `, [tableHash, tableSchemaJson, tableName]);
     };
+    fnIndex.schema[`forceUpdate${pluralTitle}MetaTable`] = {
+      args: [],
+      description: `Ensures the ${pluralName} metatable is up to date.`,
+    };
+    fns[`forceUpdate${pluralTitle}MetaTable`] = connifyAndCommit(db, fns, `forceUpdate${pluralTitle}MetaTable`);
+    fns[`forceUpdate${pluralTitle}MetaTableWithConn`] = async (conn, oldSchemaObj = {}) => {
+      await conn.query(`
+        UPDATE ${metaTable} SET
+          hash = ?, schema_obj = ?
+        WHERE name = ?
+      `, [tableHash, tableSchemaJson, tableName]);
+    };
     fnIndex.schema[`create${pluralTitle}Table`] = {
       args: [],
       description: `Creates the ${pluralName} table.`,
@@ -869,6 +881,17 @@ exports.init = async (opts = {}) => {
     await conn.query(`
       DROP TABLE IF EXISTS ${metaTable}
     `);
+  };
+  fnIndex.schema['forceUpdateAllMetaTables'] = {
+    args: [],
+    description: `Update the meta table to reflect the new schema.`,
+  };
+  fns.forceUpdateAllMetaTables = connifyAndCommit(db, fns, 'forceUpdateAllMetaTables');
+  fns.forceUpdateAllMetaTablesWithConn = async (conn) => {
+    for (let i = 0; i < models.length; i++) {
+      const { pluralTitle } = models[i];
+      await fns[`forceUpdate${pluralTitle}MetaTable`]();
+    }
   };
   fnIndex.schema['ensureAllTables'] = {
     args: [],
