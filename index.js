@@ -595,7 +595,7 @@ exports.init = async (opts = {}) => {
         INSERT INTO ${metaTable}
           (name, hash, schema_obj)
         VALUES (?, ?, ?)
-        ON DUPLICATE UPDATE
+        ON DUPLICATE KEY UPDATE
           hash = ?, schema_obj = ?
       `, [tableName, tableHash, tableSchemaJson, tableHash, tableSchemaJson]);
     };
