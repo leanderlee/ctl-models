@@ -592,10 +592,12 @@ exports.init = async (opts = {}) => {
     fns[`forceUpdate${pluralTitle}MetaTable`] = connifyAndCommit(db, fns, `forceUpdate${pluralTitle}MetaTable`);
     fns[`forceUpdate${pluralTitle}MetaTableWithConn`] = async (conn, oldSchemaObj = {}) => {
       await conn.query(`
-        UPDATE ${metaTable} SET
+        INSERT INTO ${metaTable}
+          (name, hash, schema_obj)
+        VALUES (?, ?, ?)
+        ON DUPLICATE UPDATE
           hash = ?, schema_obj = ?
-        WHERE name = ?
-      `, [tableHash, tableSchemaJson, tableName]);
+      `, [tableName, tableHash, tableSchemaJson, tableHash, tableSchemaJson]);
     };
     fnIndex.schema[`create${pluralTitle}Table`] = {
       args: [],
